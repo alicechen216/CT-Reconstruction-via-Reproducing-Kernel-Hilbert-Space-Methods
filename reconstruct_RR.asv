@@ -1,0 +1,36 @@
+% reconstruct_RR.m
+function g_lambda = reconstruct_RR(y, z_k, t_k, pixel_grid, img_size, params)
+    % Reconstructs an image using the RR method.
+    % Solves (G*G' + lambda*E)c = G*y
+
+    lambda = params.lambda;
+    gamma = params.gamma;
+
+    % Define the basis centers (uniform grid)
+    grid_res = 32; % Paper uses 64, using 32 for speed
+    [X_basis, Y_basis] = meshgrid(linspace(-1, 1, grid_res), linspace(-1, 1, grid_res));
+    x_j = [X_basis(:), Y_basis(:)];
+    
+    % --- Step 1: Assemble matrix G ---
+    % G(k, j) = R_{z_k, t_k}(K_gamma(x_j, .))
+    fprintf('Assembling RR matrix G...\n');
+    G = radon_transform_Gaussian_basis(z_k, t_k, x_j, gamma);
+
+    % --- Step 2: Assemble matrix E ---
+    % E(j, k) = K_gamma(x_j, x_k)
+    fprintf('Assembling RR matrix E...\n');
+    E = exp(-pdist2(x_j, x_j, 'squaredeuclidean') / gamma);
+
+    % --- Step 3: Solve the linear system ---
+    fprintf('Solving RR linear system...\n');
+    A = G' * G' + lambda * E;
+    b = G * y;
+    [c, ~] = pcg(A, b, 1e-4, 200);
+
+    % --- Step 4: Reconstruct the image ---
+    % g_lambda(x) = sum_j c_j * K_gamma(x_j, x)
+    fprintf('Reconstructing final RR image...\n');
+    K_gamma_image = exp(-pdist2(pixel_grid, x_j, 'squaredeuclidean') / gamma);
+    g_lambda_vec = K_gamma_image * c;
+    g_lambda = reshape(g_lambda_vec, img_size, img_size);
+end
