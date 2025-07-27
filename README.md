@@ -6,7 +6,7 @@ This repository reimplements the numerical experiments from the paper:
 > by Ruoming Wang and Yuesheng Xu, *Journal of Complexity*, Vol. 66, 2021, 101567.  
 > [DOI: 10.1016/j.jco.2021.101567](https://doi.org/10.1016/j.jco.2021.101567)
 > 
-![Result](comparison.png)
+![Result](Comparison.png)
 
 We focus on applying kernel-based regularization methods to reconstruct images from limited-angle Radon transform measurements using:
 
